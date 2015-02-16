@@ -46,7 +46,7 @@ Supported parameters:
 	* `UPDATE`: Update the DNS entry (delete if exists, and create)
 	* `DELETE`: Create the DNS entry
 	* `CREATE`: Create the DNS entry or fail if existing
-* `hostedZoneName* : String - Name of your hosted zone (Must end with an dot!)
+* `hostedZoneName`: String - Name of your hosted zone (Must end with an dot!)
 * `recordSetName`: String - Name of your record set (XYZ.hostedZoneName)
 * `ttl`: Number - TTL in seconds (default 300)
 * `metadata`: String - Metadata field to ue als the value (default ipv4-local, http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html )
