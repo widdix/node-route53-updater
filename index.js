@@ -205,7 +205,7 @@ function run(action, params, cb) {
 				cb(new Error("hostedZoneName not found"));
 			} else {
 				if (action === "CREATE" || action === "UPDATE") {
-					metadata(params.metadata || "local-ipv4", function (err, value) {
+					metadata(params.metadata || "public-ipv4", function (err, value) {
 						if (err) {
 							cb(err);
 						} else {
