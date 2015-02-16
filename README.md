@@ -4,4 +4,10 @@
 
 # route53-updater
 
-TODO
+Install route53-updater globally
+
+npm install route53-updater -g
+
+Create or update the DNS A entry for test.yourdomain.com to point to the public ip of the EC2 instance
+
+	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. 
