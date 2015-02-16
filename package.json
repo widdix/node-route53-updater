@@ -1,6 +1,6 @@
 {
 	"name": "route53-updater",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Updating a Route53 resource set with meta-data of EC2 instance",
 	"keywords": ["Route53", "AWS"],
 	"main": "index.js",
