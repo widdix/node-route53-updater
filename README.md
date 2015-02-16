@@ -18,7 +18,7 @@ Create or update the DNS A entry for test.yourdomain.com to point to the public 
 
 The assumed defaults are
 
-	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. --ttl 300 --metadata public-ipv4 --type A
+	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. --ttl 300 --metadata public-hostname --type CNAME
 
 The instance running the script needs the following IAM access rights:
 
@@ -49,5 +49,5 @@ Supported parameters:
 * `hostedZoneName`: String - Name of your hosted zone (Must end with an dot!)
 * `recordSetName`: String - Name of your record set (XYZ.hostedZoneName)
 * `ttl`: Number - TTL in seconds (default 300)
-* `metadata`: String - Metadata field to ue als the value (default public-ipv4, http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html )
-* `type`: String - Type of record set (default A, http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html )
+* `metadata`: String - Metadata field to ue als the value (default public-hostname, http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html )
+* `type`: String - Type of record set (default CNAME, http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html )

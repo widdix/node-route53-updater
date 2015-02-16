@@ -60,7 +60,6 @@ function retrieveRecordSet(hostedZoneId, name, cb) {
 	route53.listResourceRecordSets({
 		"HostedZoneId": hostedZoneId,
 		"StartRecordName": name,
-		"StartRecordType": "A",
 		"MaxItems": "1"
 	}, function(err, res) {
 		if (err) {
@@ -205,14 +204,14 @@ function run(action, params, cb) {
 				cb(new Error("hostedZoneName not found"));
 			} else {
 				if (action === "CREATE" || action === "UPDATE") {
-					metadata(params.metadata || "public-ipv4", function (err, value) {
+					metadata(params.metadata || "public-hostname", function (err, value) {
 						if (err) {
 							cb(err);
 						} else {
 							if (action === "CREATE") {
-								createRecordSet(hostedZone.Id, params.recordSetName, params.type || "A", value, params.ttl || 300, cb);
+								createRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 300, cb);
 							} else if (action === "UPDATE") {
-								updateRecordSet(hostedZone.Id, params.recordSetName, params.type || "A", value, params.ttl || 300, cb);
+								updateRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 300, cb);
 							} 
 						}
 					});
