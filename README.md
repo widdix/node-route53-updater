@@ -6,6 +6,8 @@
 
 The `route53-updater` module can update an Record Set with the current IP of an machine. This can be useful if you have a single instance running in an auto scaling group. During startup of the EC2 instance you call the `route53-updater` to update the DNS entry to the new IP.  
 
+Port of https://github.com/taimos/route53-updater/
+
 ## CLI Usage
 
 Install route53-updater globally
@@ -18,7 +20,7 @@ Create or update the DNS A entry for test.yourdomain.com to point to the public 
 
 The assumed defaults are
 
-	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. --ttl 300 --metadata public-hostname --type CNAME
+	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. --ttl 60 --metadata public-hostname --type CNAME
 
 The instance running the script needs the following IAM access rights:
 
@@ -48,6 +50,6 @@ Supported parameters:
 	* `CREATE`: Create the DNS entry or fail if existing
 * `hostedZoneName`: String - Name of your hosted zone (Must end with an dot!)
 * `recordSetName`: String - Name of your record set (XYZ.hostedZoneName)
-* `ttl`: Number - TTL in seconds (default 300)
+* `ttl`: Number - TTL in seconds (default 60)
 * `metadata`: String - Metadata field to ue als the value (default public-hostname, http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html )
 * `type`: String - Type of record set (default CNAME, http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html )

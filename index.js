@@ -209,9 +209,9 @@ function run(action, params, cb) {
 							cb(err);
 						} else {
 							if (action === "CREATE") {
-								createRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 300, cb);
+								createRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 60, cb);
 							} else if (action === "UPDATE") {
-								updateRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 300, cb);
+								updateRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 60, cb);
 							} 
 						}
 					});
