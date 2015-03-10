@@ -2,7 +2,6 @@ var assert = require("assert-plus");
 var AWS = require("aws-sdk");
 var async = require("async");
 var underscore = require("underscore");
-var metadata = require("ec2-metadata");
 
 function retrieveHostedZone(name, cb) {
 	"use strict";
@@ -204,7 +203,8 @@ function run(action, params, cb) {
 				cb(new Error("hostedZoneName not found"));
 			} else {
 				if (action === "CREATE" || action === "UPDATE") {
-					metadata(params.metadata || "public-hostname", function (err, value) {
+					var mds = new AWS.MetadataService();
+					mds.request("/latest/meta-data/" + (params.metadata || "public-hostname"), function(err, value) {
 						if (err) {
 							cb(err);
 						} else {
