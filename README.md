@@ -4,7 +4,7 @@
 
 # route53-updater
 
-The `route53-updater` module can update an Record Set with the current IP of an machine. This can be useful if you have a single instance running in an auto scaling group. During startup of the EC2 instance you call the `route53-updater` to update the DNS entry to the new IP.  
+The `route53-updater` module can update an Record Set with the current IP or hostname of an machine. This can be useful if you have a single instance running in an auto scaling group. During startup of the EC2 instance you call the `route53-updater` to update the DNS entry to the new IP.  
 
 Port of https://github.com/taimos/route53-updater/
 
@@ -14,7 +14,7 @@ Install route53-updater globally
 
 	npm install route53-updater -g
 
-Create or update the DNS A entry for test.yourdomain.com to point to the public ip of the EC2 instance
+Create or update the DNS CNAME entry for test.yourdomain.com to point to the public hostname of the EC2 instance
 
 	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. 
 
