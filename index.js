@@ -71,6 +71,32 @@ function retrieveRecordSet(hostedZoneId, name, cb) {
 	});
 }
 
+function checkINSYNC(changeInfo, cb) {
+	"use strict";
+	assert.object(changeInfo, "changeInfo");
+	assert.string(changeInfo.Id, "changeInfo.Id");
+	assert.string(changeInfo.Status, "changeInfo.Status");
+	assert.func(cb, "cb");
+	if (changeInfo.Status === "PENDING") {
+		setTimeout(function() {
+			var route53 = new AWS.Route53();
+			route53.getChange({
+				"Id": changeInfo.Id
+			}, function(err ,res) {
+				if (err) {
+					cb(err);
+				} else {
+					checkINSYNC(res.ChangeInfo, cb);
+				}
+			});
+	}, 5000);
+	} else if (changeInfo.Status === "INSYNC") {
+		cb();
+	} else {
+		cb(new Error("unsupported status " + changeInfo.Status));
+	}
+}
+
 function deleteRecordSet(hostedZoneId, name, cb) {
 	"use strict";
 	assert.string(hostedZoneId, "hostedZoneId");
@@ -94,7 +120,7 @@ function deleteRecordSet(hostedZoneId, name, cb) {
 				if (err) {
 					cb(err);
 				} else {
-					cb();
+					checkINSYNC(res.ChangeInfo, cb);
 				}
 			});
 		}
@@ -128,11 +154,9 @@ function createRecordSet(hostedZoneId, name, type, value, ttl, cb) {
 		"HostedZoneId": hostedZoneId
 	}, function(err, res) {
 		if (err) {
-			console.log("err", err);
 			cb(err);
 		} else {
-			console.log("res", res);
-			cb(undefined);
+			checkINSYNC(res.ChangeInfo, cb);
 		}
 	});
 }
@@ -178,7 +202,7 @@ function updateRecordSet(hostedZoneId, name, type, value, ttl, cb) {
 				if (err) {
 					cb(err);
 				} else {
-					cb();
+					checkINSYNC(res.ChangeInfo, cb);
 				}
 			});
 		}
@@ -194,7 +218,6 @@ function run(action, params, cb) {
 	assert.optionalString(params.metadata, "params.metadata");
 	assert.optionalString(params.type, "params.type");
 	assert.func(cb, "cb");
-
 	retrieveHostedZone(params.hostedZoneName, function(err, hostedZone) {
 		if (err) {
 			cb(err);

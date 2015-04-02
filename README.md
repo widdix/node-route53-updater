@@ -8,6 +8,10 @@ The `route53-updater` module can update an Record Set with the current IP or hos
 
 Port of https://github.com/taimos/route53-updater/
 
+## Update from 0.1.X to 0.2.X
+
+Add `"route53:GetChange"` to the IAM access rights.
+
 ## CLI Usage
 
 Install route53-updater globally
@@ -33,7 +37,8 @@ The instance running the script needs the following IAM access rights:
 				"Action": [
 					"route53:ChangeResourceRecordSets",
 					"route53:ListHostedZones",
-					"route53:ListResourceRecordSets"
+					"route53:ListResourceRecordSets",
+					"route53:GetChange"
 				],
 				"Resource": [
 					"*"
