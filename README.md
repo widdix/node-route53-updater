@@ -26,6 +26,10 @@ The assumed defaults are
 
 	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. --ttl 60 --metadata public-hostname --type CNAME
 
+By default route53-updater will lookup the IP address against the Amazon Metadata Service. If running outside Amazon, you can use the first IPv4 address on an interface by specifying an --iface option
+
+	route53-updater --action UPDATE --hostedZoneName yourdomain.com. --recordSetName test.yourdomain.com. --iface eth0
+
 The instance running the script needs the following IAM access rights:
 
 	{
