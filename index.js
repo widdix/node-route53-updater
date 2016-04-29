@@ -2,6 +2,7 @@ var assert = require("assert-plus");
 var AWS = require("aws-sdk");
 var async = require("async");
 var underscore = require("underscore");
+var os = require("os");
 
 function retrieveHostedZone(name, cb) {
 	"use strict";
@@ -217,6 +218,7 @@ function run(action, params, cb) {
 	assert.optionalNumber(params.ttl, "params.ttl");
 	assert.optionalString(params.metadata, "params.metadata");
 	assert.optionalString(params.type, "params.type");
+	assert.optionalString(params.iface, "params.iface");
 	assert.func(cb, "cb");
 	retrieveHostedZone(params.hostedZoneName, function(err, hostedZone) {
 		if (err) {
@@ -226,8 +228,7 @@ function run(action, params, cb) {
 				cb(new Error("hostedZoneName not found"));
 			} else {
 				if (action === "CREATE" || action === "UPDATE") {
-					var mds = new AWS.MetadataService();
-					mds.request("/latest/meta-data/" + (params.metadata || "public-hostname"), function(err, value) {
+					var issueUpdate = function(err, value) {
 						if (err) {
 							cb(err);
 						} else {
@@ -237,7 +238,19 @@ function run(action, params, cb) {
 								updateRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 60, cb);
 							} 
 						}
-					});
+					};
+
+					if(params.iface){
+						var iface = os.networkInterfaces()[params.iface];
+						assert.arrayOfObject(iface, "iface present");
+						var ipv4 = iface.filter(function(binding){ return binding.family === "IPv4"; });
+						assert.bool(ipv4.length === 1, "iface ipv4 family");
+						assert.string(ipv4[0].address, "iface ipv4 address");
+						issueUpdate(null, ipv4[0].address);
+					}else{
+						var mds = new AWS.MetadataService();
+						mds.request("/latest/meta-data/" + (params.metadata || "public-hostname"), issueUpdate);
+					}
 				} else if (action === "DELETE") {
 					deleteRecordSet(hostedZone.Id, params.recordSetName, cb);
 				} else {
