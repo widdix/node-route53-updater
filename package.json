@@ -1,6 +1,6 @@
 {
 	"name": "route53-updater",
-	"version": "0.3.0",
+	"version": "1.0.0",
 	"description": "Updating a Route53 resource set with meta-data of EC2 instance",
 	"keywords": ["Route53", "AWS"],
 	"main": "index.js",
@@ -10,16 +10,17 @@
 	"author": "Michael Wittig <michael@widdix.de>",
 	"license": "MIT",
 	"dependencies": {
-		"assert-plus": "0.1.5",
-		"aws-sdk": "2.1.20",
-		"async": "0.9.0",
-		"underscore": "1.8.2",
-		"minimist": "1.1.1"
+		"assert-plus": "1.0.0",
+		"aws-sdk": "2.4.1",
+		"async": "1.5.2",
+		"underscore": "1.8.3",
+		"minimist": "1.2.0"
 	},
 	"devDependencies": {
-		"jshint": "2.6.3",
-		"madge": "0.4.1",
-		"npmedge": "0.2.1"
+		"jshint": "2.9.2",
+		"madge": "0.5.4",
+		"npmedge": "0.2.2",
+		"istanbul": "0.4.4"
 	},
 	"repository": {
 		"type": "git",

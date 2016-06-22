@@ -4,19 +4,16 @@ var async = require("async");
 var underscore = require("underscore");
 var os = require("os");
 
-function retrieveHostedZone(name, cb) {
+function retrieveHostedZoneId(name, cb) {
 	"use strict";
 	assert.string(name, "name");
 	assert.func(cb, "cb");
 	var route53 = new AWS.Route53(),
-		hostedZone,
+		hostedZones = [],
 		nextMarker;
 	async.whilst(
 		function() {
 			if (nextMarker === null) {
-				return false;
-			}
-			if (hostedZone !== undefined) {
 				return false;
 			}
 			return true;
@@ -29,9 +26,9 @@ function retrieveHostedZone(name, cb) {
 				if (err) {
 					cb(err);
 				} else {
-					hostedZone = underscore.find(res.HostedZones, function(hostedZone) {
+					hostedZones = hostedZones.concat(underscore.filter(res.HostedZones, function(hostedZone) {
 						return hostedZone.Name === name;
-					});
+					}));
 					if (res.IsTruncated === true) {
 						nextMarker = res.NextMarker;
 					} else {
@@ -45,7 +42,14 @@ function retrieveHostedZone(name, cb) {
 			if (err) {
 				cb(err);
 			} else {
-				cb(undefined, hostedZone);
+				if (hostedZones.length > 1) {
+					cb(new Error("hostedZoneName not unique. Use hostedZoneId parameter."));
+				} else if (hostedZones.length === 1) {
+					cb(undefined, hostedZones[0].Id);
+				} else {
+					cb(new Error("hostedZoneName not found"));
+				}
+				
 			}
 		}
 	);
@@ -210,59 +214,71 @@ function updateRecordSet(hostedZoneId, name, type, value, ttl, cb) {
 	});
 }
 
-function run(action, params, cb) {
+function run(action, hostedZoneId, params, cb) {
+	"use strict";
+	if (action === "CREATE" || action === "UPDATE") {
+		var issueUpdate = function(err, value) {
+			if (err) {
+				cb(err);
+			} else {
+				if (action === "CREATE") {
+					createRecordSet(hostedZoneId, params.recordSetName, params.type || "CNAME", value, params.ttl || 60, cb);
+				} else if (action === "UPDATE") {
+					updateRecordSet(hostedZoneId, params.recordSetName, params.type || "CNAME", value, params.ttl || 60, cb);
+				} 
+			}
+		};
+		if (params.iface){
+			var ifaces = os.networkInterfaces();
+			var iface = ifaces[params.iface];
+			if (iface === undefined) {
+				cb(new Error("interface not found"));
+			} else {
+				assert.arrayOfObject(iface, "iface present");
+				var ipv4 = underscore.find(iface, function(binding) { return binding.family === "IPv4"; });
+				if (ipv4 === undefined) {
+					cb(new Error("interface has no IPv4 address"));
+				} else {
+					issueUpdate(null, ipv4.address);
+				}
+			}
+		} else {
+			var mds = new AWS.MetadataService();
+			mds.request("/latest/meta-data/" + (params.metadata || "public-hostname"), issueUpdate);
+		}
+	} else if (action === "DELETE") {
+		deleteRecordSet(hostedZoneId, params.recordSetName, cb);
+	} else {
+		cb(new Error("action must be one of CREATE, UPDATE, or DELETE"));
+	}
+}
+
+function input(action, params, cb) {
 	"use strict";
 	assert.string(action, "action");
-	assert.string(params.hostedZoneName, "params.hostedZoneName");
+	assert.optionalString(params.hostedZoneId, "params.hostedZoneId");
 	assert.string(params.recordSetName, "params.recordSetName");
 	assert.optionalNumber(params.ttl, "params.ttl");
 	assert.optionalString(params.metadata, "params.metadata");
 	assert.optionalString(params.type, "params.type");
 	assert.optionalString(params.iface, "params.iface");
 	assert.func(cb, "cb");
-	retrieveHostedZone(params.hostedZoneName, function(err, hostedZone) {
-		if (err) {
-			cb(err);
-		} else {
-			if (hostedZone === undefined) {
-				cb(new Error("hostedZoneName not found"));
+	if (params.hostedZoneId !== undefined) {
+		run(action, params.hostedZoneId, params, cb);
+	} else {
+		assert.string(params.hostedZoneName, "params.hostedZoneName");
+		retrieveHostedZoneId(params.hostedZoneName, function(err, hostedZoneId) {
+			if (err) {
+				cb(err);
 			} else {
-				if (action === "CREATE" || action === "UPDATE") {
-					var issueUpdate = function(err, value) {
-						if (err) {
-							cb(err);
-						} else {
-							if (action === "CREATE") {
-								createRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 60, cb);
-							} else if (action === "UPDATE") {
-								updateRecordSet(hostedZone.Id, params.recordSetName, params.type || "CNAME", value, params.ttl || 60, cb);
-							} 
-						}
-					};
-
-					if(params.iface){
-						var iface = os.networkInterfaces()[params.iface];
-						assert.arrayOfObject(iface, "iface present");
-						var ipv4 = iface.filter(function(binding){ return binding.family === "IPv4"; });
-						assert.bool(ipv4.length === 1, "iface ipv4 family");
-						assert.string(ipv4[0].address, "iface ipv4 address");
-						issueUpdate(null, ipv4[0].address);
-					}else{
-						var mds = new AWS.MetadataService();
-						mds.request("/latest/meta-data/" + (params.metadata || "public-hostname"), issueUpdate);
-					}
-				} else if (action === "DELETE") {
-					deleteRecordSet(hostedZone.Id, params.recordSetName, cb);
-				} else {
-					cb(new Error("action must be one of CREATE, UPDATE, DELETE"));
-				}
+				run(action, hostedZoneId, params, cb);
 			}
-		}
-	});
+		});
+	}
 }
 
-module.exports = run;
-exports.retrieveHostedZone = retrieveHostedZone;
+module.exports = input;
+exports.retrieveHostedZoneId = retrieveHostedZoneId;
 exports.retrieveRecordSet = retrieveRecordSet;
 exports.deleteRecordSet = deleteRecordSet;
 exports.createRecordSet = createRecordSet;
