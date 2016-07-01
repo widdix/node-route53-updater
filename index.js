@@ -175,25 +175,10 @@ function updateRecordSet(hostedZoneId, name, type, value, ttl, cb) {
 	assert.number(ttl, "ttl");
 	assert.func(cb, "cb");
 	var route53 = new AWS.Route53();
-	retrieveRecordSet(hostedZoneId, name, function(err, recordSet) {
-		if (err) {
-			cb(err);
-		} else {
-			var params = {
-				"ChangeBatch": {
-					"Changes": [],
-					"Comment": "reoute53-updater updateRecordSet()"
-				},
-				"HostedZoneId": hostedZoneId
-			};
-			if (recordSet !== undefined) {
-				params.ChangeBatch.Changes.push({
-					"Action": "DELETE",
-					"ResourceRecordSet": recordSet
-				});
-			}
-			params.ChangeBatch.Changes.push({
-				"Action": "CREATE",
+	var params = {
+		"ChangeBatch": {
+			"Changes": [{
+				"Action": "UPSERT",
 				"ResourceRecordSet": {
 					"Name": name,
 					"Type": type,
@@ -202,14 +187,16 @@ function updateRecordSet(hostedZoneId, name, type, value, ttl, cb) {
 						"Value": value
 					}]
 				}
-			});
-			route53.changeResourceRecordSets(params, function(err, res) {
-				if (err) {
-					cb(err);
-				} else {
-					checkINSYNC(res.ChangeInfo, cb);
-				}
-			});
+			}],
+			"Comment": "reoute53-updater updateRecordSet()"
+		},
+		"HostedZoneId": hostedZoneId
+	};
+	route53.changeResourceRecordSets(params, function(err, res) {
+		if (err) {
+			cb(err);
+		} else {
+			checkINSYNC(res.ChangeInfo, cb);
 		}
 	});
 }
