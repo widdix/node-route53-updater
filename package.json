@@ -14,7 +14,7 @@
 		"aws-sdk": "2.4.1",
 		"async": "1.5.2",
 		"underscore": "1.8.3",
-		"minimist": "1.2.0"
+		"minimist": "1.2.5"
 	},
 	"devDependencies": {
 		"jshint": "2.9.2",
